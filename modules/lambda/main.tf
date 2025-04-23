@@ -9,7 +9,7 @@ resource "aws_lambda_function" "image_processor" {
   environment {
     variables = {
       SOURCE_BUCKET      = var.s3_bucket
-      DESTINATION_BUCKET = var.destination_bucket
+      DEST_BUCKET = var.destination_bucket
     }
   }
 
