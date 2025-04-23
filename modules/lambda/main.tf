@@ -1,10 +1,10 @@
 resource "aws_lambda_function" "image_processor" {
-  filename         = "./lambda_function.zip"
+  filename         = "./lambda_image_processor/lambda_function.zip"
   function_name    = "image_processor"
   role             = var.iam_role_arn
   handler          = "lambda_function.lambda_handler"
   runtime          = "python3.8"
-  source_code_hash = filebase64sha256("./lambda_function.zip")
+  source_code_hash = filebase64sha256("./lambda_image_processor/lambda_function.zip")
 
   environment {
     variables = {
