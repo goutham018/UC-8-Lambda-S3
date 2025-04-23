@@ -1,32 +1,26 @@
 import json
 import boto3
-from PIL import Image
-import io
+import os
 
 s3 = boto3.client('s3')
+destination_bucket = os.environ['DEST_BUCKET']
 
 def lambda_handler(event, context):
-    source_bucket = 'source-images-bucket-273550'
-    destination_bucket = 'processed-images-bucket-273550'
-    key = event['Records'][0]['s3']['object']['key']
-
-    # Get the image from S3
-    response = s3.get_object(Bucket=source_bucket, Key=key)
-    image_content = response['Body'].read()
-
-    # Process the image (e.g., resize)
-    image = Image.open(io.BytesIO(image_content))
-    image = image.resize((100, 100))  # Example: resize to 100x100
-
-    # Save the processed image to a buffer
-    buffer = io.BytesIO()
-    image.save(buffer, 'JPEG')
-    buffer.seek(0)
-
-    # Upload the processed image to the destination bucket
-    s3.put_object(Bucket=destination_bucket, Key=key, Body=buffer, ContentType='image/jpeg')
+    print("Event: ", json.dumps(event))  # Log the event object
+    for record in event.get('Records', []):  # Use .get() to avoid KeyError
+        source_bucket = record['s3']['bucket']['name']
+        key = record['s3']['object']['key']
+        
+        copy_source = {'Bucket': source_bucket, 'Key': key}
+        
+        try:
+            s3.copy_object(CopySource=copy_source, Bucket=destination_bucket, Key=key)
+            print(f'Successfully copied {key} from {source_bucket} to {destination_bucket}')
+        except Exception as e:
+            print(f'Error copying object: {e}')
+            raise e
 
     return {
         'statusCode': 200,
-        'body': json.dumps('Image processed and uploaded successfully!')
+        'body': json.dumps('Image processed successfully')
     }
